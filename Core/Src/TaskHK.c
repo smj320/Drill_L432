@@ -3,7 +3,7 @@
 //
 #include "main.h"
 #include "cmsis_os.h"
-#include "xprintf.h"
+#include <stdio.h>
 #include "task.h"
 #include "TaskHK.h"
 
@@ -31,7 +31,7 @@ void TaskHKEntry(void *argument) {
         // 回線状態の表示(受信バイト数とQAMステータス)
         uint8_t mode, snr, msg;
         CMX869B_get_qam_status(&mode, &snr, &msg);
-        xprintf("%04d FE:%03d SNR:%d MODE:%02X MSG:%02X ", f_count, f_error, snr, mode, msg);
+        printf("%04d FE:%03d SNR:%d MODE:%02X MSG:%02X ", f_count, f_error, snr, mode, msg);
 
         //データの準備
         xQTx.count = f_count;
@@ -48,15 +48,15 @@ void TaskHKEntry(void *argument) {
         if (xQueueReceive(xQueueRxHK, &xQRx, pdMS_TO_TICKS(1500)) == pdPASS) {
             if (xQRx.control.isAbort == 1) {
                 f_error++;
-                xprintf("__ ");
+                printf("__ ");
             }
-            xprintf("%02X %02X ", xQRx.len, xQRx.count);
+            printf("%02X %02X ", xQRx.len, xQRx.count);
             for (int i = 0; i < xQRx.len; i++) {
-                xprintf("%04d ", xQRx.data[i]);
+                printf("%04d ", xQRx.data[i]);
             }
-            xprintf("\r\n");
+            printf("\r\n");
         } else {
-            xprintf("TimeOut\r\n");
+            printf("TimeOut\r\n");
         }
 
         // 1秒待機

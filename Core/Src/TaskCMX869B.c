@@ -2,11 +2,11 @@
 // Created by kikuchi on 2026/10/21.
 //
 #include <string.h>
+#include <stdio.h>
 #include "main.h"
 #include "cmsis_os.h"
 #include "task.h"
-#include "stm32f3xx_hal.h"
-#include "xprintf.h"
+#include "stm32l4xx_hal.h"
 #include "TaskCMX869B.h"
 #include "TaskCMX869B_priv.h"
 
@@ -194,7 +194,7 @@ void cmx_init(int is_gse_mode) {
     }
     //GRE.Bits.IrqMask = 0b001001;
     //cbus_write_reg(GRE_ADDR, GRE.Word);
-    xprintf("Initialized\r\n");
+    printf("Initialized\r\n");
     set_bps(QamStatusReg.Bits.Mode);
 }
 
@@ -281,7 +281,7 @@ uint8_t cbus_read_data(void) {
 
 // 割込要因のロギング
 void int_log(int count) {
-    xprintf("%04d:%d %d %d %d %d\r\n",
+    printf("%04d:%d %d %d %d %d\r\n",
             count,
             StatusReg.Bits.IRQ,
             StatusReg.Bits.TxDataReady,
@@ -293,7 +293,7 @@ void int_log(int count) {
 
 void qam_monitor(int is_gse, int tic) {
     QamStatusReg.Word = cbus_read_reg(QamStatusReg_ADDR);
-    xprintf("GSE:%d TI:%03d MSG:%02X SNR:%02X MODE:%02X\r\n",
+    printf("GSE:%d TI:%03d MSG:%02X SNR:%02X MODE:%02X\r\n",
             is_gse,
             tic, QamStatusReg.Bits.Messages,
             QamStatusReg.Bits.SNR,
@@ -387,7 +387,7 @@ void set_qam_call() {
     HAL_Delay(10);
 }
 
-// xprintf用
+// printf用
 void uart_putc(unsigned char c) {
     while (!(huart.Instance->ISR & USART_ISR_TXE)) {
     }

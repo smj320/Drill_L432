@@ -29,8 +29,6 @@ extern "C" {
 /* Includes ------------------------------------------------------------------*/
 #include "stm32l4xx_hal.h"
 
-#include "stm32l4xx_nucleo_32.h"
-
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 
@@ -55,18 +53,21 @@ extern "C" {
 void Error_Handler(void);
 
 /* USER CODE BEGIN EFP */
-
+int __io_putchar(int ch); //NOLINT(clang-diagnostic-unused-function)
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
-#define CPU_MON_Pin GPIO_PIN_15
-#define CPU_MON_GPIO_Port GPIOC
 #define MCO_Pin GPIO_PIN_0
 #define MCO_GPIO_Port GPIOA
 #define VCP_TX_Pin GPIO_PIN_2
 #define VCP_TX_GPIO_Port GPIOA
+#define CPU_MON_Pin GPIO_PIN_1
+#define CPU_MON_GPIO_Port GPIOB
 #define C_CS_Pin GPIO_PIN_8
 #define C_CS_GPIO_Port GPIOA
+#define MODEM_MODE_Pin GPIO_PIN_12
+#define MODEM_MODE_GPIO_Port GPIOA
 #define SWDIO_Pin GPIO_PIN_13
 #define SWDIO_GPIO_Port GPIOA
 #define SWCLK_Pin GPIO_PIN_14
