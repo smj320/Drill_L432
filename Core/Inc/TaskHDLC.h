@@ -5,6 +5,8 @@
 #ifndef CMX869B_TASKCMX869B_H
 #define CMX869B_TASKCMX869B_H
 
+#define Q_DATA_SIZE 80
+
 void StartTaskHDLC(void *argument);
 void Wakeup_TaskHDLC_FromISR(void);
 

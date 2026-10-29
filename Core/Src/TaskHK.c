@@ -11,29 +11,39 @@
 #include "TaskHK.h"
 #include "TaskHDLC.h"
 
+extern int Is_gse;
+extern  QueueHandle_t hTxQ, hRxQ;
+
 void StartTaskHK(void *argument) {
+    uint8_t tx_data[Q_DATA_SIZE];
+    uint8_t rx_data[Q_DATA_SIZE];
+    static uint8_t f_count = 0;
+
     // 基準時刻の初期化と現在のティック数を取得
     const TickType_t xFrequency = pdMS_TO_TICKS(1000*2); // 1000msをTick数に変換
     TickType_t xLastWakeTime = xTaskGetTickCount();
 
-    //uint8_t f_count = 0;
-    //int f_error = 0;
-
     for (;;) {
-        /*
         // 処理開始
-        // 回線状態の表示(受信バイト数とQAMステータス)
-        uint8_t mode, snr, msg;
-        printf("%04d FE:%03d SNR:%d MODE:%02X MSG:%02X ", f_count, f_error, snr, mode, msg);
-
-        //送信実行
+        for (int i = 0; i < Q_DATA_SIZE; i++) {
+            tx_data[i] = i;
+        }
+        // 送信実行
+        xQueueSend(hTxQ, tx_data, 0);
         osDelay(200);
 
         // 受信
-
-        // 1秒待機
-        */
+        if (xQueueReceive(hRxQ, rx_data, 1500) == pdTRUE) {
+            printf("GSE %d ", Is_gse);
+            for (int i = 0; i < Q_DATA_SIZE; i++) {
+                printf("%04d ",rx_data[i]);
+            }
+            printf("\r\n");
+        }else {
+            printf("Receive timeout\r\n");
+        }
+        // 待機
         vTaskDelayUntil(&xLastWakeTime, xFrequency);
-        //f_count++;
+        f_count++;
     }
 }

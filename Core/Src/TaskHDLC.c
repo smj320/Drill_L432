@@ -13,10 +13,10 @@
 // ********************************************************
 // タスク
 // ********************************************************
-#define Q_DATA_SIZE 80
-extern osThreadId_t TaskHDLCHandle;
+// タスク起床用に自分のハンドルを持ってくる
 QueueHandle_t hTxQ, hRxQ;
-static void tcp_service();
+extern osThreadId_t TaskHDLCHandle;
+static void HDLC_service();
 
 // ISRから読んでもらう
 void Wakeup_TaskHDLC_FromISR(void) {
@@ -32,25 +32,24 @@ void StartTaskHDLC(void *argument) {
     hRxQ = xQueueCreate(10, sizeof(uint8_t));
     //CMX869Bの初期化
     cmx869b_init();
+    //TIM2スタート
+    HAL_TIM_Base_Start_IT(&htim);
 
-    // ********************************************************
-    // 待機処理
-    // ********************************************************
-    // 割込(ISRからの通知)またはタイムアウトで起きてステータスを処理する
-    // タイムアウトは割込の取りこぼし対策のポーリングを兼ねる
-    // CMX869BへのSPIアクセスはこのタスクだけが行う
     for (;;) {
+        // 周期割込待ち
         ulTaskNotifyTake(pdTRUE, portMAX_DELAY);;
+        // 計測開始
         HAL_GPIO_WritePin(CPU_MON_GPIO_Port, CPU_MON_Pin, GPIO_PIN_SET);
         //割込処理の実体
-        tcp_service();
+        HDLC_service();
+        // 計測終了
         HAL_GPIO_WritePin(CPU_MON_GPIO_Port, CPU_MON_Pin, GPIO_PIN_RESET);
     }
 }
 // QAMステータスの取得(TaskCMX869Bが定期的に読んだ値のコピーを返す。SPIアクセスはしない)
 // 1文字送信(送信バッファに詰めて送信開始)
 // ステータスを読んで送受信する。割込線が戻るまで繰り返す
-static void tcp_service() {
+static void HDLC_service() {
     StatusRegType st = {0};
     static uint8_t rxBuffer[Q_DATA_SIZE];
     static uint8_t txBuffer[Q_DATA_SIZE];
