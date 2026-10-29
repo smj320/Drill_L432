@@ -10,9 +10,9 @@
 #include "main.h"
 #include "cmx869b.h"
 #include "TaskHDLC.h"
-// ********************************************************
-// タスク
-// ********************************************************
+// ----------------------------------------------------------------------------
+// 各種宣言と確保
+// ----------------------------------------------------------------------------
 // タスク起床用に自分のハンドルを持ってくる
 QueueHandle_t hTxQ, hRxQ;
 extern osThreadId_t TaskHDLCHandle;
@@ -20,7 +20,6 @@ extern osThreadId_t TaskHDLCHandle;
 int FrameError = 0;
 // 診断用カウンタ(TaskHKで表示)
 HdlcCntType HdlcCnt = {0};
-static void HDLC_service();
 
 // キューの実体(静的確保)
 #define Q_LENGTH 2
@@ -41,26 +40,13 @@ void Wakeup_TaskHDLC_FromISR(void) {
     portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
 }
 
+// ----------------------------------------------------------------------------
 // タスクのエントリポイント。weakをここで上書き
-void StartTaskHDLC(void *argument) {
-    //CMX869Bの初期化
-    cmx869b_init();
-
-    for (;;) {
-        // 周期割込待ち
-        ulTaskNotifyTake(pdTRUE, portMAX_DELAY);;
-        // 計測開始
-        HAL_GPIO_WritePin(CPU_MON_GPIO_Port, CPU_MON_Pin, GPIO_PIN_SET);
-        //割込処理の実体
-        HDLC_service();
-        // 計測終了
-        HAL_GPIO_WritePin(CPU_MON_GPIO_Port, CPU_MON_Pin, GPIO_PIN_RESET);
-    }
-}
-// QAMステータスの取得(TaskCMX869Bが定期的に読んだ値のコピーを返す。SPIアクセスはしない)
-// 1文字送信(送信バッファに詰めて送信開始)
-// ステータスを読んで送受信する。割込線が戻るまで繰り返す
-static void HDLC_service() {
+// ----------------------------------------------------------------------------
+// -------------------------------------
+// HDLC service
+// -------------------------------------
+static void HDLC_driver() {
     StatusRegType st = {0};
     static uint8_t rxBuffer[Q_DATA_SIZE];
     static uint8_t txBuffer[Q_DATA_SIZE];
@@ -109,5 +95,23 @@ static void HDLC_service() {
         HdlcCnt.lastLen = rxPtr;
         xQueueSend(hRxQ, rxBuffer, 0);
         rxPtr = 0;
+    }
+}
+// -------------------------------------
+// エントリーポイント
+// -------------------------------------
+void StartTaskHDLC(void *argument) {
+    //CMX869Bの初期化
+    cmx869b_init();
+
+    for (;;) {
+        // 周期割込待ち
+        ulTaskNotifyTake(pdTRUE, portMAX_DELAY);;
+        // 計測開始
+        HAL_GPIO_WritePin(CPU_MON_GPIO_Port, CPU_MON_Pin, GPIO_PIN_SET);
+        //割込処理の実体
+        HDLC_driver();
+        // 計測終了
+        HAL_GPIO_WritePin(CPU_MON_GPIO_Port, CPU_MON_Pin, GPIO_PIN_RESET);
     }
 }
