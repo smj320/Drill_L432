@@ -10,11 +10,6 @@
 // ----------------------------------------------------------------------------
 //ステータス・ジレスタビット定義構造体定義
 // ----------------------------------------------------------------------------
-extern int Is_gse;
-
-// ----------------------------------------------------------------------------
-//ステータス・ジレスタビット定義構造体定義
-// ----------------------------------------------------------------------------
 // General Reset
 #define General_Reset_ADDR 0x01
 
@@ -136,7 +131,6 @@ static uint16_t cbus_read_reg(uint8_t adr) {
     return result;
 }
 
-
 // ----------------------------------------------------------------------------
 // C Bus 公開 操作関数
 // ----------------------------------------------------------------------------
@@ -156,34 +150,26 @@ uint8_t cbus_read_data(void) {
 }
 
 StatusRegType cbus_read_status(void) {
-    uint8_t tx_data[2], rx_data[2];
-    tx_data[0] = StatusReg_ADDR;
-    tx_data[1] = 0x0;
-    cbus_read_write(tx_data, rx_data, 2);
-    StatusRegType result;
-    result.Word = (rx_data[1] << 8) + rx_data[2];
-    return result;
+    StatusRegType st;
+    st.Word = cbus_read_reg(StatusReg_ADDR);
+    return st;
 }
 
 StatusQamRegType cbus_read_status_qam(void) {
-    uint8_t tx_data[2], rx_data[2];
-    tx_data[0] = StatusQamReg_ADDR;
-    tx_data[1] = 0x0;
-    cbus_read_write(tx_data, rx_data, 2);
-    StatusQamRegType result;
-    result.Word = (rx_data[1] << 8) + rx_data[2];
-    return result;
+    StatusQamRegType qamSt;
+    qamSt.Word = cbus_read_reg(StatusRegQam_ADDR);
+    return qamSt;
 }
 
-void cbus_monitor_status_qam() {
+static void cbus_monitor_status_qam() {
     static int tic = 0;
-    StatusQamRegType QamStatusReg = {0};
-    QamStatusReg.Word = cbus_read_reg(StatusQamReg_ADDR);
+    StatusQamRegType qamSt= {0};
+    qamSt = cbus_read_status_qam();
     printf("GSE:%d TI:%03d MSG:%02X SNR:%02X MODE:%02X\r\n",
             Is_gse,
-            tic, QamStatusReg.Bits.Messages,
-            QamStatusReg.Bits.SNR,
-            QamStatusReg.Bits.Mode);
+            tic, qamSt.Bits.Messages,
+            qamSt.Bits.SNR,
+            qamSt.Bits.Mode);
     tic++;
     HAL_Delay(500);
 }
@@ -192,91 +178,91 @@ void cbus_monitor_status_qam() {
 // ----------------------------------------------------------------------------
 #define TX_LEVEL 0b101;
 #define RX_LEVEL 0b111;
-void set_bell() {
-    TxRegType TxReg = {0};
-    RxRegType RxReg = {0};
+static void set_bell() {
+    TxRegType txReg= {0};
+    RxRegType rxReg = {0};
     // TX
-    TxReg.Bits.TxMode = TxReg_Mode_BELL;
-    TxReg.Bits.TxLevel = TX_LEVEL;
-    //TxReg.Bits.StartStop = 0b10; //Start-stop, NonParity
-    //TxReg.Bits.DataBits = 0b111; //8bit Stop2
-    TxReg.Bits.StartStop = 0b11; //Special Mode
-    TxReg.Bits.DataBits = 0b110; //HDLC Mode
-    cbus_write_reg(TxReg_ADDR, TxReg.Word);
+    txReg.Bits.TxMode = TxReg_Mode_BELL;
+    txReg.Bits.TxLevel = TX_LEVEL;
+    //txReg.Bits.StartStop = 0b10; //Start-stop, NonParity
+    //txReg.Bits.DataBits = 0b111; //8bit Stop2
+    txReg.Bits.StartStop = 0b11; //Special Mode
+    txReg.Bits.DataBits = 0b110; //HDLC Mode
+    cbus_write_reg(TxReg_ADDR, txReg.Word);
     // RX
-    RxReg.Bits.RxMode = RxReg_Mode_BELL;
-    RxReg.Bits.RxLevel = RX_LEVEL;
-    //RxReg.Bits.StartStop_Synch = 0b110; //Start-stop, NonOverSpeed
-    //RxReg.Bits.BitsParity = 0b110; //8bit, NonParity (0b111は8bit+Parity)
-    RxReg.Bits.StartStop_Synch = 0b111; //Special Mode
-    RxReg.Bits.BitsParity = 0b110; //HDLC Mode
-    cbus_write_reg(RxReg_ADDR, RxReg.Word);
+    rxReg.Bits.RxMode = RxReg_Mode_BELL;
+    rxReg.Bits.RxLevel = RX_LEVEL;
+    //rxReg.Bits.StartStop_Synch = 0b110; //Start-stop, NonOverSpeed
+    //rxReg.Bits.BitsParity = 0b110; //8bit, NonParity (0b111は8bit+Parity)
+    rxReg.Bits.StartStop_Synch = 0b111; //Special Mode
+    rxReg.Bits.BitsParity = 0b110; //HDLC Mode
+    cbus_write_reg(RxReg_ADDR, rxReg.Word);
 }
 
 // AutoModem ネゴシエーション必須
-void set_qam_answer() {
-    TxRegType TxReg = {0};
-    RxRegType RxReg = {0};
-    QamRegType QamReg = {0};
+static void set_qam_answer() {
+    TxRegType txReg= {0};
+    RxRegType rxReg = {0};
+    QamRegType qamReg = {0};
     // TX
-    TxReg.Bits.TxMode = TxReg_Mode_QAM_AUTO;
-    TxReg.Bits.TxLevel = TX_LEVEL;
-    //TxReg.Bits.StartStop = 0b10; //Start-stop, NonParity
-    //TxReg.Bits.DataBits = 0b111; //8bit Stop2
-    TxReg.Bits.StartStop = 0b11; //Special Mode
-    TxReg.Bits.DataBits = 0b110; //HDLC Mode
-    cbus_write_reg(TxReg_ADDR, TxReg.Word);
+    txReg.Bits.TxMode = TxReg_Mode_QAM_AUTO;
+    txReg.Bits.TxLevel = TX_LEVEL;
+    //txReg.Bits.StartStop = 0b10; //Start-stop, NonParity
+    //txReg.Bits.DataBits = 0b111; //8bit Stop2
+    txReg.Bits.StartStop = 0b11; //Special Mode
+    txReg.Bits.DataBits = 0b110; //HDLC Mode
+    cbus_write_reg(TxReg_ADDR, txReg.Word);
     HAL_Delay(10);
     // RX
-    RxReg.Bits.RxMode = RxReg_Mode_QAM_AUTO;
-    RxReg.Bits.RxLevel = RX_LEVEL;
-    //RxReg.Bits.StartStop_Synch = 0b110; //Start-stop, NonOverSpeed
-    //RxReg.Bits.BitsParity = 0b110; //8bit, NonParity (0b111は8bit+Parity)
-    RxReg.Bits.StartStop_Synch = 0b111; //Special Mode
-    RxReg.Bits.BitsParity = 0b110; //HDLC Mode
-    cbus_write_reg(RxReg_ADDR, RxReg.Word);
+    rxReg.Bits.RxMode = RxReg_Mode_QAM_AUTO;
+    rxReg.Bits.RxLevel = RX_LEVEL;
+    //rxReg.Bits.StartStop_Synch = 0b110; //Start-stop, NonOverSpeed
+    //rxReg.Bits.BitsParity = 0b110; //8bit, NonParity (0b111は8bit+Parity)
+    rxReg.Bits.StartStop_Synch = 0b111; //Special Mode
+    rxReg.Bits.BitsParity = 0b110; //HDLC Mode
+    cbus_write_reg(RxReg_ADDR, rxReg.Word);
     HAL_Delay(10);
     //QAM
-    QamReg.Bits.br = QamMaxBR_14400;
+    qamReg.Bits.br = QamMaxBR_14400;
     //QamReg.Bits.br = QamMaxBR_12000;
     //QamReg.Bits.br = QamMaxBR_9600;
     //QamReg.Bits.br = QamMaxBR_2400;
-    QamReg.Bits.command = QamAnswer;
-    QamReg.Bits.zeros = QamZeros;
-    cbus_write_reg(QamCmdReg_ADDR, QamReg.Word);
+    qamReg.Bits.command = QamAnswer;
+    qamReg.Bits.zeros = QamZeros;
+    cbus_write_reg(QamCmdReg_ADDR, qamReg.Word);
     HAL_Delay(10);
 }
 
-void set_qam_call() {
-    TxRegType TxReg = {0};
-    RxRegType RxReg = {0};
-    QamRegType QamReg = {0};
+static void set_qam_call() {
+    TxRegType txReg= {0};
+    RxRegType rxReg = {0};
+    QamRegType qamReg = {0};
     // TX
-    TxReg.Bits.TxMode = TxReg_Mode_QAM_AUTO;
-    TxReg.Bits.TxLevel = TX_LEVEL;
-    //TxReg.Bits.StartStop = 0b10; //Start-stop, NonParity
-    //TxReg.Bits.DataBits = 0b111; //8bit Stop2
-    TxReg.Bits.StartStop = 0b11; //Special Mode
-    TxReg.Bits.DataBits = 0b110; //HDLC Mode
-    cbus_write_reg(TxReg_ADDR, TxReg.Word);
+    txReg.Bits.TxMode = TxReg_Mode_QAM_AUTO;
+    txReg.Bits.TxLevel = TX_LEVEL;
+    //txReg.Bits.StartStop = 0b10; //Start-stop, NonParity
+    //txReg.Bits.DataBits = 0b111; //8bit Stop2
+    txReg.Bits.StartStop = 0b11; //Special Mode
+    txReg.Bits.DataBits = 0b110; //HDLC Mode
+    cbus_write_reg(TxReg_ADDR, txReg.Word);
     HAL_Delay(10);
     // RX
-    RxReg.Bits.RxMode = RxReg_Mode_QAM_AUTO;
-    RxReg.Bits.RxLevel = RX_LEVEL;
-    //RxReg.Bits.StartStop_Synch = 0b110; //Start-stop, NonOverSpeed
-    //RxReg.Bits.BitsParity = 0b110; //8bit, NonParity (0b111は8bit+Parity)
-    RxReg.Bits.StartStop_Synch = 0b111; //Special Mode
-    RxReg.Bits.BitsParity = 0b110; //HDLC Mode
-    cbus_write_reg(RxReg_ADDR, RxReg.Word);
+    rxReg.Bits.RxMode = RxReg_Mode_QAM_AUTO;
+    rxReg.Bits.RxLevel = RX_LEVEL;
+    //rxReg.Bits.StartStop_Synch = 0b110; //Start-stop, NonOverSpeed
+    //rxReg.Bits.BitsParity = 0b110; //8bit, NonParity (0b111は8bit+Parity)
+    rxReg.Bits.StartStop_Synch = 0b111; //Special Mode
+    rxReg.Bits.BitsParity = 0b110; //HDLC Mode
+    cbus_write_reg(RxReg_ADDR, rxReg.Word);
     HAL_Delay(10);
     //QAM
-    QamReg.Bits.br = QamMaxBR_14400;
+    qamReg.Bits.br = QamMaxBR_14400;
     //QamReg.Bits.br = QamMaxBR_12000;
     //QamReg.Bits.br = QamMaxBR_9600;
     //QamReg.Bits.br = QamMaxBR_2400;
-    QamReg.Bits.command = QamCall;
-    QamReg.Bits.zeros = QamZeros;
-    cbus_write_reg(QamCmdReg_ADDR, QamReg.Word);
+    qamReg.Bits.command = QamCall;
+    qamReg.Bits.zeros = QamZeros;
+    cbus_write_reg(QamCmdReg_ADDR, qamReg.Word);
     HAL_Delay(10);
 }
 // ----------------------------------------------------------------------------
@@ -306,15 +292,15 @@ static void set_poll_count(uint8_t mode) {
     HAL_TIM_Base_Start_IT(&htim2);
 }
 
-// ----------------------------------------------------------------------------
+// ****************************************************************************
 // 初期化
-// ----------------------------------------------------------------------------
+// ****************************************************************************
 void cmx869b_init() {
     GREType gre = {0};
-    // StatusRegType st = {0};
-    StatusQamRegType Qamst = {0};
+    StatusRegType st = {0};
+    StatusQamRegType stqam = {0};
 
-    static int is_loop_back = 1;
+    static int is_loop_back = 0;
     static int is_Cal = 0;
 
     // 動作モード選択
@@ -328,13 +314,15 @@ void cmx869b_init() {
     cbus_write_reg(General_Reset_ADDR, 0);
 
     // ステータス確認
-    // st = cbus_read_status();
+    st = cbus_read_status();
+    (void) st; //コンパイル時の不使用警告を抑止
 
     // Pwr=1,Rst=1で20ms以上保持して内部ロジックを確定させる(データシート GCR b8)
     // ここで水晶が発振する。
     gre.Bits.Pwr = 1;
     gre.Bits.Rst = 1;
     cbus_write_reg(GRE_ADDR, gre.Word);
+    st = cbus_read_status();
     HAL_Delay(25);
 
     //send_cmdで、うまくいくと22pinが発振する
@@ -346,7 +334,7 @@ void cmx869b_init() {
     gre.Bits.IrqEna = 1;
     gre.Bits.IrqMask = 0b000000;
     cbus_write_reg(GRE_ADDR, gre.Word);
-    // st = cbus_read_status();
+    st = cbus_read_status();
     HAL_Delay(1);
 
     // モデム送受信の設定
@@ -367,7 +355,9 @@ void cmx869b_init() {
         }
     }
     // ポーリングビットレート設定
-    set_poll_count(Qamst.Bits.Mode);
+    st = cbus_read_status();
+    stqam = cbus_read_status_qam();
+    set_poll_count(stqam.Bits.Mode);
     // 合図
     printf("Initialized\r\n");
 }

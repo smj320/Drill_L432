@@ -10,10 +10,10 @@
 #include "main.h"
 #include "TaskHK.h"
 #include "TaskHDLC.h"
-
-extern int Is_gse;
+//
 extern  QueueHandle_t hTxQ, hRxQ;
 
+// タスクのエントリポイント。weakをここで上書き
 void StartTaskHK(void *argument) {
     uint8_t tx_data[Q_DATA_SIZE];
     uint8_t rx_data[Q_DATA_SIZE];

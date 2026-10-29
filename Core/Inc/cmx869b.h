@@ -35,7 +35,7 @@ typedef union {
     } __attribute__((packed)) Bits;
 } StatusRegType;
 // QAM Status Register
-#define StatusQamReg_ADDR 0xEB
+#define StatusRegQam_ADDR 0xEB
 typedef union {
     uint16_t Word;
     struct {

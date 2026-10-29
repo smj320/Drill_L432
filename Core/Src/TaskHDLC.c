@@ -25,15 +25,13 @@ void Wakeup_TaskHDLC_FromISR(void) {
     portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
 }
 
-//
+// タスクのエントリポイント。weakをここで上書き
 void StartTaskHDLC(void *argument) {
     //キューの作成
     hTxQ = xQueueCreate(10, sizeof(uint8_t));
     hRxQ = xQueueCreate(10, sizeof(uint8_t));
     //CMX869Bの初期化
     cmx869b_init();
-    //TIM2スタート
-    HAL_TIM_Base_Start_IT(&htim);
 
     for (;;) {
         // 周期割込待ち
@@ -55,13 +53,8 @@ static void HDLC_service() {
     static uint8_t txBuffer[Q_DATA_SIZE];
     static int rxPtr = 0;
     static int txPtr = Q_DATA_SIZE;
-
-    //計測開始
-    HAL_GPIO_WritePin(CPU_MON_GPIO_Port, CPU_MON_Pin, GPIO_PIN_SET);
-    //
     //ステータス確認
     st = cbus_read_status();
-    //
     // ------------------------
     // TXレジスタがReadyならデバイスに書く
     // ------------------------
@@ -93,6 +86,4 @@ static void HDLC_service() {
             rxPtr = 0;
         }
     }
-    // 計測終了
-    HAL_GPIO_WritePin(CPU_MON_GPIO_Port, CPU_MON_Pin, GPIO_PIN_RESET);
 }
