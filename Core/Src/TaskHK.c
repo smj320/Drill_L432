@@ -34,7 +34,7 @@ void StartTaskHK(void *argument) {
 
         // 受信
         if (xQueueReceive(hRxQ, rx_data, 1500) == pdTRUE) {
-            printf("GSE %d ", Is_gse);
+            printf("GSE %d : \r\n", Is_gse);
             for (int i = 0; i < Q_DATA_SIZE; i++) {
                 printf("%04d ",rx_data[i]);
             }

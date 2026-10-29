@@ -139,6 +139,7 @@ int main(void)
 
   /* USER CODE BEGIN RTOS_QUEUES */
   /* add queues, ... */
+  HDLC_QueueInit();
   /* USER CODE END RTOS_QUEUES */
 
   /* Create the thread(s) */

@@ -178,6 +178,9 @@ static void cbus_monitor_status_qam() {
 // ----------------------------------------------------------------------------
 #define TX_LEVEL 0b101;
 #define RX_LEVEL 0b111;
+// ------------------------------------
+// 調整用
+// ------------------------------------
 static void set_bell() {
     TxRegType txReg= {0};
     RxRegType rxReg = {0};
@@ -198,8 +201,9 @@ static void set_bell() {
     rxReg.Bits.BitsParity = 0b110; //HDLC Mode
     cbus_write_reg(RxReg_ADDR, rxReg.Word);
 }
-
+// ------------------------------------
 // AutoModem ネゴシエーション必須
+// ------------------------------------
 static void set_qam_answer() {
     TxRegType txReg= {0};
     RxRegType rxReg = {0};
@@ -224,9 +228,9 @@ static void set_qam_answer() {
     HAL_Delay(10);
     //QAM
     qamReg.Bits.br = QamMaxBR_14400;
-    //QamReg.Bits.br = QamMaxBR_12000;
-    //QamReg.Bits.br = QamMaxBR_9600;
-    //QamReg.Bits.br = QamMaxBR_2400;
+    //qamReg.Bits.br = QamMaxBR_12000;
+    //qamReg.Bits.br = QamMaxBR_9600;
+    //qamReg.Bits.br = QamMaxBR_2400;
     qamReg.Bits.command = QamAnswer;
     qamReg.Bits.zeros = QamZeros;
     cbus_write_reg(QamCmdReg_ADDR, qamReg.Word);
@@ -257,17 +261,18 @@ static void set_qam_call() {
     HAL_Delay(10);
     //QAM
     qamReg.Bits.br = QamMaxBR_14400;
-    //QamReg.Bits.br = QamMaxBR_12000;
-    //QamReg.Bits.br = QamMaxBR_9600;
-    //QamReg.Bits.br = QamMaxBR_2400;
+    //qamReg.Bits.br = QamMaxBR_12000;
+    //qamReg.Bits.br = QamMaxBR_9600;
+    //qamReg.Bits.br = QamMaxBR_2400;
     qamReg.Bits.command = QamCall;
     qamReg.Bits.zeros = QamZeros;
     cbus_write_reg(QamCmdReg_ADDR, qamReg.Word);
     HAL_Delay(10);
 }
-// ----------------------------------------------------------------------------
-// ネゴシエーション
-// ----------------------------------------------------------------------------
+// ****************************************************************************
+// 初期化
+// ****************************************************************************
+// モードから周期割込の頻度を決める
 #define TIM_CLK 64000000
 static void set_poll_count(uint8_t mode) {
     uint32_t target_modes[] = {0x0F, 0x0E, 0x0D, 0x0C, 0x0B, 0x0A, 0x09, 0x08};
@@ -286,15 +291,14 @@ static void set_poll_count(uint8_t mode) {
     uint32_t booClk = (TIM_CLK / target_freq);
     // booClkがbpsに相当するので、このルーチンをbClk回抜けると1秒になる
     // 4bitの時間おきにポーリングにいく
-    __HAL_TIM_SET_AUTORELOAD(&htim2, booClk*3-1);
+    __HAL_TIM_SET_AUTORELOAD(&htim2, booClk-1);
 
     //割込開始
     HAL_TIM_Base_Start_IT(&htim2);
 }
-
-// ****************************************************************************
-// 初期化
-// ****************************************************************************
+// ------------------------------------
+// キモの初期化
+// ------------------------------------
 void cmx869b_init() {
     GREType gre = {0};
     StatusRegType st = {0};

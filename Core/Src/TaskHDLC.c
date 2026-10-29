@@ -16,7 +16,21 @@
 // タスク起床用に自分のハンドルを持ってくる
 QueueHandle_t hTxQ, hRxQ;
 extern osThreadId_t TaskHDLCHandle;
+//
+int FrameError = 0;
 static void HDLC_service();
+
+// キューの実体(静的確保)
+#define Q_LENGTH 2
+static StaticQueue_t txQCtrl, rxQCtrl;
+static uint8_t txQStorage[Q_LENGTH * Q_DATA_SIZE];
+static uint8_t rxQStorage[Q_LENGTH * Q_DATA_SIZE];
+
+// キューの作成。osKernelStart()より前にmainから呼ぶ
+void HDLC_QueueInit(void) {
+    hTxQ = xQueueCreateStatic(Q_LENGTH, Q_DATA_SIZE, txQStorage, &txQCtrl);
+    hRxQ = xQueueCreateStatic(Q_LENGTH, Q_DATA_SIZE, rxQStorage, &rxQCtrl);
+}
 
 // ISRから読んでもらう
 void Wakeup_TaskHDLC_FromISR(void) {
@@ -27,9 +41,6 @@ void Wakeup_TaskHDLC_FromISR(void) {
 
 // タスクのエントリポイント。weakをここで上書き
 void StartTaskHDLC(void *argument) {
-    //キューの作成
-    hTxQ = xQueueCreate(10, sizeof(uint8_t));
-    hRxQ = xQueueCreate(10, sizeof(uint8_t));
     //CMX869Bの初期化
     cmx869b_init();
 
@@ -76,7 +87,7 @@ static void HDLC_service() {
     if (st.Bits.RxDataReady == 1) {
         uint8_t rx_data = cbus_read_data();
         //ポインタが端までいっていなければバッファに書く
-        if (rxPtr < 80) {
+        if (rxPtr < Q_DATA_SIZE) {
             rxBuffer[rxPtr++] = rx_data;
         }
         //パケットが終了ならキューに書き込んでrxPtr=0に戻す
