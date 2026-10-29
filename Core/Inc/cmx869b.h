@@ -1,10 +1,9 @@
 //
-// Created by kikuchi on 2026/10/21.
+// Created by kikuchi on 2026/10/29.
 //
-#ifndef CMX869B_TASK_CMX869B_PRIV_H
-#define CMX869B_TASK_CMX869B_PRIV_H
-#include "main.h"
-#include <stdint.h>
+
+#ifndef DRILL_L432_CMX869B_H
+#define DRILL_L432_CMX869B_H
 // ***********************************************************
 // 外部変数定義。番号は適宜変更のこと
 // ***********************************************************
@@ -153,4 +152,4 @@ void set_bps(uint8_t mode);
 //
 void int_log(int count);
 
-#endif //CMX869B_TASK_CMX869B_PRIV_H
+#endif //DRILL_L432_CMX869B_H

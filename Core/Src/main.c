@@ -19,14 +19,16 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "cmsis_os.h"
-#include <stdio.h>
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include <stdio.h>
+#include "TaskHK.h"
+#include "TaskCMX869B.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
+typedef StaticTask_t osStaticThreadDef_t;
 /* USER CODE BEGIN PTD */
 
 /* USER CODE END PTD */
@@ -48,12 +50,29 @@ TIM_HandleTypeDef htim2;
 
 UART_HandleTypeDef huart2;
 
-/* Definitions for defaultTask */
-osThreadId_t defaultTaskHandle;
-const osThreadAttr_t defaultTask_attributes = {
-  .name = "defaultTask",
-  .stack_size = 128 * 4,
-  .priority = (osPriority_t) osPriorityNormal,
+/* Definitions for TaskCMX869B */
+osThreadId_t TaskCMX869BHandle;
+uint32_t TaskCMX869BBuffer[ 128 ];
+osStaticThreadDef_t TaskCMX869BControlBlock;
+const osThreadAttr_t TaskCMX869B_attributes = {
+  .name = "TaskCMX869B",
+  .cb_mem = &TaskCMX869BControlBlock,
+  .cb_size = sizeof(TaskCMX869BControlBlock),
+  .stack_mem = &TaskCMX869BBuffer[0],
+  .stack_size = sizeof(TaskCMX869BBuffer),
+  .priority = (osPriority_t) osPriorityRealtime1,
+};
+/* Definitions for TaskHK */
+osThreadId_t TaskHKHandle;
+uint32_t TaskHKBuffer[ 128 ];
+osStaticThreadDef_t TaskHKControlBlock;
+const osThreadAttr_t TaskHK_attributes = {
+  .name = "TaskHK",
+  .cb_mem = &TaskHKControlBlock,
+  .cb_size = sizeof(TaskHKControlBlock),
+  .stack_mem = &TaskHKBuffer[0],
+  .stack_size = sizeof(TaskHKBuffer),
+  .priority = (osPriority_t) osPriorityLow,
 };
 /* USER CODE BEGIN PV */
 
@@ -65,7 +84,8 @@ static void MX_GPIO_Init(void);
 static void MX_TIM2_Init(void);
 static void MX_SPI1_Init(void);
 static void MX_USART2_UART_Init(void);
-void StartDefaultTask(void *argument);
+void StartTaskCMX869B(void *argument);
+void StartTaskHK(void *argument);
 
 /* USER CODE BEGIN PFP */
 
@@ -77,7 +97,7 @@ void StartDefaultTask(void *argument);
 /* USER CODE END 0 */
 
 /**
-  * @brief  The application entry point.
+  * @brief  The application entry point.Fwe
   * @retval int
   */
 int main(void)
@@ -132,8 +152,11 @@ int main(void)
   /* USER CODE END RTOS_QUEUES */
 
   /* Create the thread(s) */
-  /* creation of defaultTask */
-  defaultTaskHandle = osThreadNew(StartDefaultTask, NULL, &defaultTask_attributes);
+  /* creation of TaskCMX869B */
+  TaskCMX869BHandle = osThreadNew(StartTaskCMX869B, NULL, &TaskCMX869B_attributes);
+
+  /* creation of TaskHK */
+  TaskHKHandle = osThreadNew(StartTaskHK, NULL, &TaskHK_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -383,14 +406,14 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 }
 /* USER CODE END 4 */
 
-/* USER CODE BEGIN Header_StartDefaultTask */
+/* USER CODE BEGIN Header_StartTaskCMX869B */
 /**
-  * @brief  Function implementing the defaultTask thread.
+  * @brief  Function implementing the TaskCMX869B thread.
   * @param  argument: Not used
   * @retval None
   */
-/* USER CODE END Header_StartDefaultTask */
-void StartDefaultTask(void *argument)
+/* USER CODE END Header_StartTaskCMX869B */
+__weak void StartTaskCMX869B(void *argument)
 {
   /* USER CODE BEGIN 5 */
   /* Infinite loop */
@@ -400,6 +423,24 @@ void StartDefaultTask(void *argument)
     osDelay(1000);
   }
   /* USER CODE END 5 */
+}
+
+/* USER CODE BEGIN Header_StartTaskHK */
+/**
+* @brief Function implementing the TaskHK thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_StartTaskHK */
+__weak void StartTaskHK(void *argument)
+{
+  /* USER CODE BEGIN StartTaskHK */
+  /* Infinite loop */
+  for(;;)
+  {
+    osDelay(1);
+  }
+  /* USER CODE END StartTaskHK */
 }
 
 /**

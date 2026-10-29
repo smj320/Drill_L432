@@ -8,12 +8,9 @@
 #include "TaskHK.h"
 
 #include <sys/types.h>
+#include "TaskTcpip.h"
 
-#include "TaskHK_priv.h"
-#include "TaskCMX869B.h"
-#include "TaskCMX869B_priv.h"
-
-void TaskHKEntry(void *argument) {
+void StartTaskHK(void *argument) {
     xQueuePacketType xQTx, xQRx;
 
     // 基準時刻の初期化と現在のティック数を取得
