@@ -24,11 +24,10 @@
 /* USER CODE BEGIN Includes */
 #include <stdio.h>
 #include "TaskHK.h"
-#include "TaskCMX869B.h"
+#include "TaskHDLC.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
-typedef StaticTask_t osStaticThreadDef_t;
 /* USER CODE BEGIN PTD */
 
 /* USER CODE END PTD */
@@ -50,32 +49,22 @@ TIM_HandleTypeDef htim2;
 
 UART_HandleTypeDef huart2;
 
-/* Definitions for TaskCMX869B */
-osThreadId_t TaskCMX869BHandle;
-uint32_t TaskCMX869BBuffer[ 128 ];
-osStaticThreadDef_t TaskCMX869BControlBlock;
-const osThreadAttr_t TaskCMX869B_attributes = {
-  .name = "TaskCMX869B",
-  .cb_mem = &TaskCMX869BControlBlock,
-  .cb_size = sizeof(TaskCMX869BControlBlock),
-  .stack_mem = &TaskCMX869BBuffer[0],
-  .stack_size = sizeof(TaskCMX869BBuffer),
+/* Definitions for TaskHDLC */
+osThreadId_t TaskHDLCHandle;
+const osThreadAttr_t TaskHDLC_attributes = {
+  .name = "TaskHDLC",
+  .stack_size = 128 * 4,
   .priority = (osPriority_t) osPriorityRealtime1,
 };
 /* Definitions for TaskHK */
 osThreadId_t TaskHKHandle;
-uint32_t TaskHKBuffer[ 128 ];
-osStaticThreadDef_t TaskHKControlBlock;
 const osThreadAttr_t TaskHK_attributes = {
   .name = "TaskHK",
-  .cb_mem = &TaskHKControlBlock,
-  .cb_size = sizeof(TaskHKControlBlock),
-  .stack_mem = &TaskHKBuffer[0],
-  .stack_size = sizeof(TaskHKBuffer),
+  .stack_size = 128 * 4,
   .priority = (osPriority_t) osPriorityLow,
 };
 /* USER CODE BEGIN PV */
-
+int Is_gse = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -84,7 +73,7 @@ static void MX_GPIO_Init(void);
 static void MX_TIM2_Init(void);
 static void MX_SPI1_Init(void);
 static void MX_USART2_UART_Init(void);
-void StartTaskCMX869B(void *argument);
+void StartTaskHDLC(void *argument);
 void StartTaskHK(void *argument);
 
 /* USER CODE BEGIN PFP */
@@ -97,7 +86,7 @@ void StartTaskHK(void *argument);
 /* USER CODE END 0 */
 
 /**
-  * @brief  The application entry point.Fwe
+  * @brief  The application entry point.
   * @retval int
   */
 int main(void)
@@ -113,7 +102,7 @@ int main(void)
   HAL_Init();
 
   /* USER CODE BEGIN Init */
-
+  Is_gse = HAL_GPIO_ReadPin(MODEM_MODE_GPIO_Port, MODEM_MODE_Pin) ? 1 : 0;
   /* USER CODE END Init */
 
   /* Configure the system clock */
@@ -152,8 +141,8 @@ int main(void)
   /* USER CODE END RTOS_QUEUES */
 
   /* Create the thread(s) */
-  /* creation of TaskCMX869B */
-  TaskCMX869BHandle = osThreadNew(StartTaskCMX869B, NULL, &TaskCMX869B_attributes);
+  /* creation of TaskHDLC */
+  TaskHDLCHandle = osThreadNew(StartTaskHDLC, NULL, &TaskHDLC_attributes);
 
   /* creation of TaskHK */
   TaskHKHandle = osThreadNew(StartTaskHK, NULL, &TaskHK_attributes);
@@ -401,26 +390,25 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
   if (htim->Instance == TIM2)
   {
-    HAL_GPIO_TogglePin(CPU_MON_GPIO_Port, CPU_MON_Pin);
+    Wakeup_TaskHDLC_FromISR();
   }
 }
 /* USER CODE END 4 */
 
-/* USER CODE BEGIN Header_StartTaskCMX869B */
+/* USER CODE BEGIN Header_StartTaskHDLC */
 /**
-  * @brief  Function implementing the TaskCMX869B thread.
+  * @brief  Function implementing the TaskHDLC thread.
   * @param  argument: Not used
   * @retval None
   */
-/* USER CODE END Header_StartTaskCMX869B */
-__weak void StartTaskCMX869B(void *argument)
+/* USER CODE END Header_StartTaskHDLC */
+__weak void StartTaskHDLC(void *argument)
 {
   /* USER CODE BEGIN 5 */
   /* Infinite loop */
   for(;;)
   {
-    printf("Frank\r\n");
-    osDelay(1000);
+    osDelay(1);
   }
   /* USER CODE END 5 */
 }

@@ -4,5 +4,5 @@
 
 #ifndef CMX869B_TASKHK_H
 #define CMX869B_TASKHK_H
-void TaskHKEntry(void *argument);
+void StartTaskHK(void *argument);
 #endif //CMX869B_TASKHK_H

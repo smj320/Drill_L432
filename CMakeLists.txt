@@ -36,7 +36,7 @@ add_executable(${CMAKE_PROJECT_NAME}
         newlib_lock_glue.c
         Core/Src/cmx869b.c
         Core/Inc/cmx869b.h
-        Core/Src/TaskTcpip.c)
+        Core/Src/TaskHDLC.c)
 
 # Add STM32CubeMX generated sources
 add_subdirectory(cmake/stm32cubemx)
@@ -50,7 +50,7 @@ target_link_directories(${CMAKE_PROJECT_NAME} PRIVATE
 target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     # Add user sources here
         Core/Src/TaskHK.c
-        Core/Src/TaskCMX869B.c
+        Core/Src/TaskHDLC.c
 )
 
 # Add include paths
