@@ -204,6 +204,11 @@ static void set_bell() {
 // ------------------------------------
 // AutoModem ネゴシエーション必須
 // ------------------------------------
+uint8_t MaxSpeed = QamMaxBR_14400;
+//uint8_t MaxSpeed = QamMaxBR_12000;
+//uint8_t MaxSpeed = QamMaxBR_9600;
+//uint8_t MaxSpeed = QamMaxBR_2400;
+//
 static void set_qam_answer() {
     TxRegType txReg= {0};
     RxRegType rxReg = {0};
@@ -227,10 +232,7 @@ static void set_qam_answer() {
     cbus_write_reg(RxReg_ADDR, rxReg.Word);
     HAL_Delay(10);
     //QAM
-    //qamReg.Bits.br = QamMaxBR_14400;
-    //qamReg.Bits.br = QamMaxBR_12000;
-    qamReg.Bits.br = QamMaxBR_9600;
-    //qamReg.Bits.br = QamMaxBR_2400;
+    qamReg.Bits.br = MaxSpeed;
     qamReg.Bits.command = QamAnswer;
     qamReg.Bits.zeros = QamZeros;
     cbus_write_reg(QamCmdReg_ADDR, qamReg.Word);
@@ -260,10 +262,7 @@ static void set_qam_call() {
     cbus_write_reg(RxReg_ADDR, rxReg.Word);
     HAL_Delay(10);
     //QAM
-    //qamReg.Bits.br = QamMaxBR_14400;
-    //qamReg.Bits.br = QamMaxBR_12000;
-    qamReg.Bits.br = QamMaxBR_9600;
-    //qamReg.Bits.br = QamMaxBR_2400;
+    qamReg.Bits.br = MaxSpeed;
     qamReg.Bits.command = QamCall;
     qamReg.Bits.zeros = QamZeros;
     cbus_write_reg(QamCmdReg_ADDR, qamReg.Word);
