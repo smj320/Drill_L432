@@ -227,9 +227,9 @@ static void set_qam_answer() {
     cbus_write_reg(RxReg_ADDR, rxReg.Word);
     HAL_Delay(10);
     //QAM
-    qamReg.Bits.br = QamMaxBR_14400;
+    //qamReg.Bits.br = QamMaxBR_14400;
     //qamReg.Bits.br = QamMaxBR_12000;
-    //qamReg.Bits.br = QamMaxBR_9600;
+    qamReg.Bits.br = QamMaxBR_9600;
     //qamReg.Bits.br = QamMaxBR_2400;
     qamReg.Bits.command = QamAnswer;
     qamReg.Bits.zeros = QamZeros;
@@ -260,9 +260,9 @@ static void set_qam_call() {
     cbus_write_reg(RxReg_ADDR, rxReg.Word);
     HAL_Delay(10);
     //QAM
-    qamReg.Bits.br = QamMaxBR_14400;
+    //qamReg.Bits.br = QamMaxBR_14400;
     //qamReg.Bits.br = QamMaxBR_12000;
-    //qamReg.Bits.br = QamMaxBR_9600;
+    qamReg.Bits.br = QamMaxBR_9600;
     //qamReg.Bits.br = QamMaxBR_2400;
     qamReg.Bits.command = QamCall;
     qamReg.Bits.zeros = QamZeros;

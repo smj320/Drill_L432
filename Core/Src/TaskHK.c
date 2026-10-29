@@ -40,7 +40,9 @@ void StartTaskHK(void *argument) {
             }
             printf("\r\n");
         }else {
-            printf("Receive timeout\r\n");
+            printf("Receive timeout RDY:%lu OVF:%lu UDF:%lu FER:%lu FCS:%lu LEN:%d\r\n",
+                   HdlcCnt.rxReady, HdlcCnt.rxOverflow, HdlcCnt.txUnderflow,
+                   HdlcCnt.frameError, HdlcCnt.fcs, HdlcCnt.lastLen);
         }
         // 待機
         vTaskDelayUntil(&xLastWakeTime, xFrequency);

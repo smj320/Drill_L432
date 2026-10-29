@@ -18,6 +18,8 @@ QueueHandle_t hTxQ, hRxQ;
 extern osThreadId_t TaskHDLCHandle;
 //
 int FrameError = 0;
+// 診断用カウンタ(TaskHKで表示)
+HdlcCntType HdlcCnt = {0};
 static void HDLC_service();
 
 // キューの実体(静的確保)
@@ -86,15 +88,26 @@ static void HDLC_service() {
     // ------------------------
     if (st.Bits.RxDataReady == 1) {
         uint8_t rx_data = cbus_read_data();
+        HdlcCnt.rxReady++;
         //ポインタが端までいっていなければバッファに書く
         if (rxPtr < Q_DATA_SIZE) {
             rxBuffer[rxPtr++] = rx_data;
         }
-        //パケットが終了ならキューに書き込んでrxPtr=0に戻す
-        //このときフレームが壊れていればcontrolに書く
-        if (st.Bits.FCS == 1) {
-            xQueueSend(hRxQ, rxBuffer, 0);
-            rxPtr = 0;
-        }
+    }
+    if (st.Bits.RxDataOverflow == 1) HdlcCnt.rxOverflow++;
+    if (st.Bits.TxDataUnderflow == 1) HdlcCnt.txUnderflow++;
+    //フレームが壊れていればそこまでの受信データを捨てる
+    if (st.Bits.FrameError == 1) {
+        HdlcCnt.frameError++;
+        FrameError = 1;
+        rxPtr = 0;
+    }
+    //パケットが終了ならキューに書き込んでrxPtr=0に戻す
+    //終端フラグはRxDataReadyと別のタイミングで立つことがあるので独立して見る
+    if (st.Bits.FCS == 1) {
+        HdlcCnt.fcs++;
+        HdlcCnt.lastLen = rxPtr;
+        xQueueSend(hRxQ, rxBuffer, 0);
+        rxPtr = 0;
     }
 }
