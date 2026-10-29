@@ -102,7 +102,7 @@ int main(void)
   HAL_Init();
 
   /* USER CODE BEGIN Init */
-  Is_gse = HAL_GPIO_ReadPin(MODEM_MODE_GPIO_Port, MODEM_MODE_Pin) ? 0 : 1;
+
   /* USER CODE END Init */
 
   /* Configure the system clock */
@@ -118,6 +118,7 @@ int main(void)
   MX_SPI1_Init();
   MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
+  Is_gse = HAL_GPIO_ReadPin(MODEM_MODE_GPIO_Port, MODEM_MODE_Pin)==GPIO_PIN_RESET ? 0 : 1;
 
   /* USER CODE END 2 */
 
