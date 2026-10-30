@@ -46,7 +46,7 @@ void Wakeup_TaskHDLC_FromISR(void) {
 // -------------------------------------
 // HDLC service
 // -------------------------------------
-static void HDLC_driver() {
+static void HDLC_service() {
     StatusRegType st = {0};
     static uint8_t rxBuffer[Q_DATA_SIZE];
     static uint8_t txBuffer[Q_DATA_SIZE];
@@ -54,6 +54,7 @@ static void HDLC_driver() {
     static int txPtr = Q_DATA_SIZE;
     //ステータス確認
     st = cbus_read_status();
+    HdlcCnt.service++;
     // ------------------------
     // TXレジスタがReadyならデバイスに書く
     // ------------------------
@@ -61,6 +62,7 @@ static void HDLC_driver() {
         //txPtrがxQTxの端まで言っていたらキューの有無をしらべて、txPtr=0にする
         if (txPtr == Q_DATA_SIZE) {
             if (xQueueReceive(hTxQ, txBuffer, 0) == pdPASS) {
+                HdlcCnt.txFrame++;
                 txPtr = 0;
             }
         }
@@ -90,7 +92,8 @@ static void HDLC_driver() {
     }
     //パケットが終了ならキューに書き込んでrxPtr=0に戻す
     //終端フラグはRxDataReadyと別のタイミングで立つことがあるので独立して見る
-    if (st.Bits.FCS == 1) {
+    //FCSビットは立ちっぱなしのことがあるので、受信データがあるときだけ送る
+    if (st.Bits.FCS == 1 && rxPtr > 0) {
         HdlcCnt.fcs++;
         HdlcCnt.lastLen = rxPtr;
         xQueueSend(hRxQ, rxBuffer, 0);
@@ -98,7 +101,7 @@ static void HDLC_driver() {
     }
 }
 // -------------------------------------
-// エントリーポイント
+// タスクのエントリーポイントとメインループ
 // -------------------------------------
 void StartTaskHDLC(void *argument) {
     // CMX869Bの初期化
@@ -110,7 +113,7 @@ void StartTaskHDLC(void *argument) {
         // 計測開始
         HAL_GPIO_WritePin(CPU_MON_GPIO_Port, CPU_MON_Pin, GPIO_PIN_SET);
         //割込処理の実体
-        HDLC_driver();
+        HDLC_service();
         // 計測終了
         HAL_GPIO_WritePin(CPU_MON_GPIO_Port, CPU_MON_Pin, GPIO_PIN_RESET);
     }

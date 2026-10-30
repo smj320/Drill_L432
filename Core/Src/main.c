@@ -53,14 +53,14 @@ UART_HandleTypeDef huart2;
 osThreadId_t TaskHDLCHandle;
 const osThreadAttr_t TaskHDLC_attributes = {
   .name = "TaskHDLC",
-  .stack_size = 128 * 4,
+  .stack_size = 256 * 4,
   .priority = (osPriority_t) osPriorityRealtime1,
 };
 /* Definitions for TaskHK */
 osThreadId_t TaskHKHandle;
 const osThreadAttr_t TaskHK_attributes = {
   .name = "TaskHK",
-  .stack_size = 128 * 4,
+  .stack_size = 256 * 4,
   .priority = (osPriority_t) osPriorityLow,
 };
 /* USER CODE BEGIN PV */

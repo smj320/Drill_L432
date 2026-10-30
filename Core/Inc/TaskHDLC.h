@@ -20,6 +20,8 @@ typedef struct {
     uint32_t txUnderflow;
     uint32_t frameError;
     uint32_t fcs;
+    uint32_t txFrame;   // キューから取り出した送信フレーム数
+    uint32_t service;   // HDLC_serviceの実行回数
     int lastLen;
 } HdlcCntType;
 extern HdlcCntType HdlcCnt;

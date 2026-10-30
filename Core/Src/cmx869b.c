@@ -273,13 +273,14 @@ static void set_qam_call() {
 // 初期化
 // ****************************************************************************
 // モードから周期割込の頻度を決める
-#define TIM_CLK 64000000
 static void set_poll_count(uint8_t mode) {
+    // TIM2のクロック。SYSCLKはMSI 4MHz x16 /2 = 32MHz。
+    // APB1が1分周なのでTIM2クロック = PCLK1(分周するとx2になるので注意)
+    const uint32_t TIM_CLK = HAL_RCC_GetPCLK1Freq();
     uint32_t target_modes[] = {0x0F, 0x0E, 0x0D, 0x0C, 0x0B, 0x0A, 0x09, 0x08};
     uint32_t target_freqs[] = {14400, 12000, 9600, 9600, 7200, 4800, 2400, 1200};
     uint32_t target_freq = 1200;
 
-    // Timerに入る周波数 64MHz
     //モード判定
     for (uint8_t i = 0; i < 8; i++) {
         if (target_modes[i] == mode) {
@@ -291,7 +292,7 @@ static void set_poll_count(uint8_t mode) {
     uint32_t booClk = (TIM_CLK / target_freq);
     // booClkがbpsに相当するので、このルーチンをbClk回抜けると1秒になる
     // 4bitの時間おきにポーリングにいく
-    __HAL_TIM_SET_AUTORELOAD(&htim2, booClk-1);
+    __HAL_TIM_SET_AUTORELOAD(&htim2, booClk*3-1);
 
     //割込開始
     HAL_TIM_Base_Start_IT(&htim2);
@@ -363,29 +364,11 @@ void cmx869b_init() {
         }else {
             set_qam_answer();
         }
-        for (uint8_t tic = 0; tic < 120; tic++) {
+        for (uint8_t tic = 0; tic < 60; tic++) {
             cbus_monitor_status_qam();
             HAL_Delay(500);
         }
     }
-        /*
-        while (!connected) {
-            if (Is_gse) {
-                set_qam_call();
-            }
-            //ハンドシェーク監視
-            for (uint8_t tic = 0; tic < HANDSHAKE_TIC; tic++) {
-                stqam = cbus_monitor_status_qam();
-                if (stqam.Bits.Mode >= QAM_MODE_CONNECTED) {
-                    connected = 1;
-                    break;
-                }
-            }
-            if (!connected && Is_gse) {
-                printf("Handshake retry\r\n");
-            }
-        }
-    }*/
     // ポーリングビットレート設定
     st = cbus_read_status();
     stqam = cbus_read_status_qam();
