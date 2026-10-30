@@ -23,6 +23,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include <stdio.h>
+#include "xprintf.h"
 #include "TaskHK.h"
 #include "TaskHDLC.h"
 /* USER CODE END Includes */
@@ -82,7 +83,13 @@ void StartTaskHK(void *argument);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-
+// xprintfの出力先。TDRに直接1byte書く(newlibのロックを通さないので割込を止めない)
+// 複数タスクから同時に出力すると文字が混ざるので注意。ISRからは呼ばないこと
+static void uart_putc(int ch)
+{
+  while (!(USART2->ISR & USART_ISR_TXE));
+  USART2->TDR = (uint8_t)ch;
+}
 /* USER CODE END 0 */
 
 /**
@@ -119,6 +126,8 @@ int main(void)
   MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
   Is_gse = HAL_GPIO_ReadPin(MODEM_MODE_GPIO_Port, MODEM_MODE_Pin)==GPIO_PIN_RESET ? 0 : 1;
+  // xprintfの出力先をUART2に設定
+  xdev_out(uart_putc);
 
   /* USER CODE END 2 */
 

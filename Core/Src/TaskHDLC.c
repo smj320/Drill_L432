@@ -96,7 +96,10 @@ static void HDLC_service() {
     if (st.Bits.FCS == 1 && rxPtr > 0) {
         HdlcCnt.fcs++;
         HdlcCnt.lastLen = rxPtr;
-        xQueueSend(hRxQ, rxBuffer, 0);
+        //終端時の状態を記録(FrameErrorが同時に立っていればCRC異常の可能性)
+        if (st.Bits.FrameError == 1) HdlcCnt.fcsWithErr++;
+        if (rxPtr != Q_DATA_SIZE) HdlcCnt.shortFrame++;
+        if (xQueueSend(hRxQ, rxBuffer, 0) != pdPASS) HdlcCnt.rxQFull++;
         rxPtr = 0;
     }
 }

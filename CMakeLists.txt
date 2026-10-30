@@ -51,6 +51,7 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     # Add user sources here
         Core/Src/TaskHK.c
         Core/Src/TaskHDLC.c
+        Core/Src/xprintf.c
 )
 
 # Add include paths

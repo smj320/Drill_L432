@@ -2,7 +2,7 @@
 // Created by kikuchi on 2026/10/29.
 //
 #include <stdint.h>
-#include <stdio.h>
+#include "xprintf.h"
 #include "cmsis_os.h"
 #include "task.h"
 #include "main.h"
@@ -165,7 +165,7 @@ static StatusQamRegType cbus_monitor_status_qam() {
     static int tic = 0;
     StatusQamRegType qamSt= {0};
     qamSt = cbus_read_status_qam();
-    printf("GSE:%d TI:%03d MSG:%02X SNR:%02X MODE:%02X\r\n",
+    xprintf("GSE:%d TI:%03d MSG:%02X SNR:%02X MODE:%02X\r\n",
             Is_gse,
             tic, qamSt.Bits.Messages,
             qamSt.Bits.SNR,
@@ -292,7 +292,7 @@ static void set_poll_count(uint8_t mode) {
     uint32_t booClk = (TIM_CLK / target_freq);
     // booClkがbpsに相当するので、このルーチンをbClk回抜けると1秒になる
     // 4bitの時間おきにポーリングにいく
-    __HAL_TIM_SET_AUTORELOAD(&htim2, booClk*3-1);
+    __HAL_TIM_SET_AUTORELOAD(&htim2, booClk*2-1);
 
     //割込開始
     HAL_TIM_Base_Start_IT(&htim2);
@@ -374,5 +374,5 @@ void cmx869b_init() {
     stqam = cbus_read_status_qam();
     set_poll_count(stqam.Bits.Mode);
     // 合図
-    printf("Initialized\r\n");
+    xprintf("Initialized\r\n");
 }
