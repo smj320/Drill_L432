@@ -299,10 +299,12 @@ static void set_poll_count(uint8_t mode) {
 // ------------------------------------
 // キモの初期化
 // ------------------------------------
+/*
 // ハンドシェーク監視時間(500ms単位)
 #define HANDSHAKE_TIC 20
 // QAMステータスのModeがこの値以上なら接続済み(set_poll_countのtarget_modesと同じ範囲)
 #define QAM_MODE_CONNECTED 0x08
+*/
 void cmx869b_init() {
     GREType gre = {0};
     StatusRegType st = {0};
@@ -355,10 +357,18 @@ void cmx869b_init() {
         // Answer側は接続するまで待ち受け続ける。
         // Call側はHANDSHAKE_TIC(500ms単位)で接続できなければ発呼からやり直す。
         // これで立ち上げ順に依存せずにハンドシェークする
-        int connected = 0;
-        if (!Is_gse) {
+        //int connected = 0;
+        if (Is_gse==1) {
+            set_qam_call();
+        }else {
             set_qam_answer();
         }
+        for (uint8_t tic = 0; tic < 120; tic++) {
+            cbus_monitor_status_qam();
+            HAL_Delay(500);
+        }
+    }
+        /*
         while (!connected) {
             if (Is_gse) {
                 set_qam_call();
@@ -375,7 +385,7 @@ void cmx869b_init() {
                 printf("Handshake retry\r\n");
             }
         }
-    }
+    }*/
     // ポーリングビットレート設定
     st = cbus_read_status();
     stqam = cbus_read_status_qam();

@@ -19,3 +19,8 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 }
 /* USER CODE END 4 */
 ```
+
+## Call と Ansが入れ替わることがある。
+
+理由は謎。IDを入れ替えて対処するしかない。なかなかハンドシェークしないので
+詰んだと思った。

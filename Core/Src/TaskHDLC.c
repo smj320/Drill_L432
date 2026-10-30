@@ -101,7 +101,7 @@ static void HDLC_driver() {
 // エントリーポイント
 // -------------------------------------
 void StartTaskHDLC(void *argument) {
-    //CMX869Bの初期化
+    // CMX869Bの初期化
     cmx869b_init();
 
     for (;;) {
